@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f14">
+<title>Мои расходы</title>
+<style>
+:root{--bg:#0d0f14;--card:#151821;--card2:#1c202b;--text:#f5f7fb;--muted:#9299a8;--accent:#7c5cff;--green:#35d07f;--red:#ff5d73;--orange:#ffb547;--border:#292e3a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(circle at top,#17142b 0%,var(--bg) 42%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.app{width:100%;max-width:520px;margin:auto;padding:18px 16px 110px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.logo{font-size:23px;font-weight:800}.date{color:var(--muted);font-size:13px;margin-top:3px}
+.reset{width:42px;height:42px;border:1px solid var(--border);border-radius:14px;background:var(--card);color:white;font-size:20px}
+.balance-card{padding:23px;border-radius:25px;background:linear-gradient(135deg,#8064ff,#4936b7);box-shadow:0 20px 45px rgba(92,69,220,.28)}
+.balance-label{color:#ffffffb3;font-size:13px}.balance-value{font-size:38px;font-weight:800;margin:7px 0 20px}
+.balance-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.balance-stat{background:#ffffff1f;padding:12px;border-radius:15px}
+.balance-stat span{display:block;color:#ffffffb3;font-size:12px}.balance-stat strong{display:block;margin-top:4px;font-size:17px}
+.section{display:flex;justify-content:space-between;align-items:center;margin:25px 2px 12px}
+.section h2{margin:0;font-size:18px}.section-link{color:#aa9cff;font-size:13px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:21px;padding:18px}
+.chart-content{display:flex;align-items:center;gap:20px}.donut{width:125px;height:125px;border-radius:50%;background:conic-gradient(var(--accent) 0 40%,var(--green) 40% 65%,var(--orange) 65% 82%,var(--red) 82% 94%,#596170 94% 100%);position:relative;flex-shrink:0}
+.donut::after{content:"";position:absolute;inset:27px;border-radius:50%;background:var(--card)}
+.legend{flex:1}.legend-item{display:flex;justify-content:space-between;align-items:center;margin:9px 0;font-size:13px;color:var(--muted)}
+.legend-name{display:flex;align-items:center}.dot{width:8px;height:8px;border-radius:50%;margin-right:7px}
+.dot1{background:var(--accent)}.dot2{background:var(--green)}.dot3{background:var(--orange)}.dot4{background:var(--red)}.dot5{background:#596170}
+.budget{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px}
+.budget-top,.budget-bottom{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.budget-top strong{color:var(--text)}.progress{height:9px;background:#292e38;border-radius:20px;overflow:hidden;margin:13px 0 9px}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#a08cff);border-radius:20px;transition:width .3s}
+.transactions{display:flex;flex-direction:column;gap:9px}.transaction{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);padding:12px;border-radius:17px}
+.transaction-icon{width:43px;height:43px;border-radius:13px;background:var(--card2);display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.transaction-info{flex:1;min-width:0}.transaction-info strong{font-size:14px}.transaction-info small{display:block;color:var(--muted);margin-top:3px;font-size:11px}
+.transaction-right{text-align:right}.amount{font-size:14px;font-weight:800}.expense{color:var(--red)}.income{color:var(--green)}
+.delete-btn{margin-top:5px;border:0;background:transparent;color:#747b8b;font-size:11px;padding:3px 0}
+.empty{text-align:center;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 15px}
+.fab{position:fixed;bottom:22px;right:max(20px,calc(50% - 235px));width:60px;height:60px;border:0;border-radius:20px;background:var(--accent);color:white;font-size:30px;box-shadow:0 12px 35px #7c5cff80;z-index:10}
+.ai-card{margin-top:25px;background:var(--card);border:1px solid var(--border);border-radius:21px;padding:18px}
+.ai-title{font-size:18px;font-weight:800}.ai-subtitle{color:var(--muted);font-size:12px;margin-top:6px;line-height:1.5}
+.ai-button{width:100%;border:0;border-radius:14px;background:var(--accent);color:white;padding:15px;font-weight:800;font-size:15px;margin-top:15px}
+.ai-result{margin-top:15px;line-height:1.55;font-size:14px;white-space:pre-wrap;color:#e8eaf0}
+.modal{display:none;position:fixed;inset:0;background:#000000b8;align-items:flex-end;justify-content:center;padding:12px;z-index:20}
+.modal.show{display:flex}.sheet{width:min(520px,100%);background:#151821;border:1px solid var(--border);border-radius:26px;padding:21px}
+.sheet-header{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0}
+.close{border:0;background:transparent;color:var(--muted);font-size:27px}.toggle{display:flex;background:#0e1117;border-radius:14px;padding:4px;margin-top:20px}
+.toggle button{flex:1;border:0;padding:11px;border-radius:10px;background:transparent;color:var(--muted);font-weight:700}
+.toggle .active{background:var(--card2);color:white}label{display:block;margin:15px 0 6px;color:var(--muted);font-size:12px}
+input,select{width:100%;padding:14px;border-radius:13px;border:1px solid var(--border);background:#0f1218;color:white;font-size:15px;outline:none}
+.save{width:100%;border:0;border-radius:14px;background:var(--accent);color:white;padding:15px;font-weight:800;font-size:15px;margin-top:20px}
+@media(min-width:700px){body{padding:20px 0}.app{background:var(--bg);border-radius:30px;min-height:calc(100vh - 40px)}}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<div class="header">
+  <div>
+    <div class="logo">Мои расходы</div>
+    <div class="date" id="currentDate"></div>
+  </div>
+  <button class="reset" onclick="resetApp()">↻</button>
+</div>
+
+<div class="balance-card">
+  <div class="balance-label">Текущий баланс</div>
+  <div class="balance-value" id="balance">₽ 0</div>
+  <div class="balance-stats">
+    <div class="balance-stat"><span>Доходы</span><strong id="income">₽ 0</strong></div>
+    <div class="balance-stat"><span>Расходы</span><strong id="expense">₽ 0</strong></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Расходы по категориям</h2>
+  <span class="section-link">Этот месяц</span>
+</div>
+
+<div class="chart-card">
+  <div class="chart-content">
+    <div class="donut"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Бюджет месяца</h2>
+  <span class="section-link" id="budgetPercent">0%</span>
+</div>
+
+<div class="budget">
+  <div class="budget-top">
+    <span>Использовано</span>
+    <strong id="budgetValue">₽ 0</strong>
+  </div>
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="budget-bottom">
+    <span>Бюджет: ₽ 100 000</span>
+    <span id="remaining">Осталось ₽ 100 000</span>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Последние операции</h2>
+  <span class="section-link" onclick="openModal()">Добавить</span>
+</div>
+
+<div class="transactions" id="transactions"></div>
+
+<!-- ИИ -->
+<div class="ai-card">
+  <div class="ai-title">🤖 ИИ-анализ расходов</div>
+  <div class="ai-subtitle">
+    ИИ посмотрит на твои операции и подскажет, где можно сократить расходы и сколько потенциально можно сэкономить.
+  </div>
+  <button class="ai-button" id="aiButton" onclick="analyzeExpenses()">
+    Получить анализ
+  </button>
+  <div class="ai-result" id="aiResult"></div>
+</div>
+
+</div>
+
+<button class="fab" onclick="openModal()">+</button>
+
+<div class="modal" id="modal">
+<div class="sheet">
+
+<div class="sheet-header">
+  <h2>Новая операция</h2>
+  <button class="close" onclick="closeModal()">×</button>
+</div>
+
+<div class="toggle">
+  <button id="expenseBtn" class="active" onclick="setType('expense')">Расход</button>
+  <button id="incomeBtn" onclick="setType('income')">Доход</button>
+</div>
+
+<label>Сумма</label>
+<input id="amount" type="number" min="0" inputmode="decimal" placeholder="0">
+
+<label>Категория</label>
+<select id="category">
+<option>Еда</option>
+<option>Транспорт</option>
+<option>Покупки</option>
+<option>Жильё</option>
+<option>Развлечения</option>
+<option>Здоровье</option>
+<option>Другое</option>
+</select>
+
+<label>Комментарий</label>
+<input id="note" type="text" placeholder="Например, продукты">
+
+<button class="save" onclick="addTransaction()">Сохранить операцию</button>
+
+</div>
+</div>
+
+<script>
+const BUDGET=100000;
+let type="expense";
+
+const icons={
+  Еда:"🍔",
+  Транспорт:"🚗",
+  Покупки:"🛍️",
+  Жильё:"🏠",
+  Развлечения:"🎮",
+  Здоровье:"💊",
+  Другое:"💳"
+};
+
+let transactions=JSON.parse(localStorage.getItem("myExpenses"))||[
+ {id:Date.now()-4,type:"expense",amount:1250,category:"Еда",note:"Продукты",date:"Сегодня"},
+ {id:Date.now()-3,type:"expense",amount:680,category:"Транспорт",note:"Бензин",date:"Сегодня"},
+ {id:Date.now()-2,type:"expense",amount:2300,category:"Покупки",note:"Одежда",date:"Вчера"},
+ {id:Date.now()-1,type:"income",amount:85000,category:"Другое",note:"Зарплата",date:"1 октября"}
+];
+
+function saveData(){
+  localStorage.setItem("myExpenses",JSON.stringify(transactions));
+}
+
+function money(v){
+  return "₽ "+Math.round(v).toLocaleString("ru-RU");
+}
+
+function escapeHtml(t){
+  return String(t)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function render(){
+
+  const income=transactions
+    .filter(x=>x.type==="income")
+    .reduce((s,x)=>s+Number(x.amount),0);
+
+  const expense=transactions
+    .filter(x=>x.type==="expense")
+    .reduce((s,x)=>s+Number(x.amount),0);
+
+  document.getElementById("balance").textContent=money(income-expense);
+  document.getElementById("income").textContent=money(income);
+  document.getElementById("expense").textContent=money(expense);
+
+  const cats={};
+
+  transactions
+    .filter(x=>x.type==="expense")
+    .forEach(x=>cats[x.category]=(cats[x.category]||0)+Number(x.amount));
+
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const total=expense||1;
+  const colors=["dot1","dot2","dot3","dot4","dot5"];
+
+  document.getElementById("legend").innerHTML=
+    sorted.slice(0,5).map((x,i)=>
+      `<div class="legend-item">
+        <span class="legend-name">
+          <i class="dot ${colors[i]}"></i>${x[0]}
+        </span>
+        <strong>${Math.round(x[1]/total*100)}%</strong>
+      </div>`
+    ).join("");
+
+  const p=Math.min(100,expense/BUDGET*100);
+
+  document.getElementById("budgetPercent").textContent=Math.round(p)+"%";
+  document.getElementById("progressBar").style.width=p+"%";
+  document.getElementById("budgetValue").textContent=money(expense);
+  document.getElementById("remaining").textContent=
+    "Осталось "+money(Math.max(0,BUDGET-expense));
+
+  const container=document.getElementById("transactions");
+
+  if(!transactions.length){
+    container.innerHTML=
+      '<div class="empty"><div style="font-size:35px">💸</div><div style="margin-top:8px">Операций пока нет</div></div>';
+    return;
+  }
+
+  container.innerHTML=transactions.slice().reverse().map(x=>
+    `<div class="transaction">
+      <div class="transaction-icon">${icons[x.category]||"💳"}</div>
+      <div class="transaction-info">
+        <strong>${escapeHtml(x.note||x.category)}</strong>
+        <small>${x.category} · ${x.date}</small>
+      </div>
+      <div class="transaction-right">
+        <div class="amount ${x.type==="income"?"income":"expense"}">
+          ${x.type==="income"?"+":"−"}${money(x.amount).replace("₽ ","")} ₽
+        </div>
+        <button class="delete-btn" onclick="deleteTransaction(${x.id})">Удалить</button>
+      </div>
+    </div>`
+  ).join("");
+}
+
+function deleteTransaction(id){
+
+  const x=transactions.find(i=>i.id===id);
+  if(!x)return;
+
+  if(!confirm(`Удалить операцию «${x.note||x.category}» на ${money(x.amount)}?`))
+    return;
+
+  transactions=transactions.filter(i=>i.id!==id);
+  saveData();
+  render();
+}
+
+function setType(t){
+  type=t;
+  document.getElementById("expenseBtn").classList.toggle("active",t==="expense");
+  document.getElementById("incomeBtn").classList.toggle("active",t==="income");
+}
+
+function openModal(){
+  document.getElementById("modal").classList.add("show");
+  setTimeout(()=>document.getElementById("amount").focus(),100);
+}
+
+function closeModal(){
+  document.getElementById("modal").classList.remove("show");
+  document.getElementById("amount").value="";
+  document.getElementById("note").value="";
+}
+
+function addTransaction(){
+
+  const amount=Number(document.getElementById("amount").value);
+  const category=document.getElementById("category").value;
+  const note=document.getElementById("note").value.trim();
+
+  if(!amount||amount<=0){
+    alert("Введите сумму");
+    return;
+  }
+
+  transactions.push({
+    id:Date.now()+Math.floor(Math.random()*1000),
+    type,
+    amount,
+    category,
+    note:note||category,
+    date:"Сегодня"
+  });
+
+  saveData();
+  render();
+  closeModal();
+}
+
+function resetApp(){
+
+  if(!confirm("Удалить все операции и вернуть демо-данные?"))
+    return;
+
+  localStorage.removeItem("myExpenses");
+  location.reload();
+}
+
+/* ===== ИИ-АНАЛИЗ ===== */
+
+async function analyzeExpenses(){
+
+  const button=document.getElementById("aiButton");
+  const result=document.getElementById("aiResult");
+
+  if(!transactions.length){
+    result.textContent="Сначала добавь хотя бы одну операцию.";
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent="⏳ Анализирую...";
+  result.textContent="ИИ изучает твои расходы...";
+
+  try{
+
+    const response=await fetch("/api/analyze",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        transactions:transactions
+      })
+    });
+
+    const data=await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error||"Ошибка сервера");
+    }
+
+    result.textContent=data.analysis||"ИИ не вернул анализ.";
+
+  }catch(error){
+
+    result.textContent=
+      "Не удалось получить анализ.\n\n"+
+      "Проверь подключение к серверу и настройки OpenAI.";
+
+    console.error(error);
+
+  }finally{
+
+    button.disabled=false;
+    button.textContent="Получить анализ";
+  }
+}
+
+const now=new Date();
+
+document.getElementById("currentDate").textContent=
+  now.toLocaleDateString("ru-RU",{
+    day:"numeric",
+    month:"long",
+    year:"numeric"
+  });
+
+render();
+</script>
+
+</body>
+</html>
